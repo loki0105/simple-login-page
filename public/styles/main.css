@@ -1,0 +1,11 @@
+.containersm
+{
+    display: flex;
+    height:100vh;
+    justify-content: center;
+    align-items: center;
+}
+.mr
+{
+    margin-top: 1rem;
+}
