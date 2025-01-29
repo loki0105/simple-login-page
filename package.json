@@ -1,0 +1,33 @@
+{
+  "name": "simple-login-page",
+  "version": "1.0.0",
+  "description": "simple login page using File system  to store and access data from json file and  uses express to create  localhost to access the web page to  try it just  type **npm i**  and basically it should work  basic authorithation low security  that  sends password  and login and checks if there is a match in the database, later i will change it to more secure methods)))",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loki0105/simple-login-page.git"
+  },
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/loki0105/simple-login-page/issues"
+  },
+  "homepage": "https://github.com/loki0105/simple-login-page#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "jsonfile": "^6.1.0",
+    "passport": "^0.7.0",
+    "password": "^0.1.1",
+    "pg": "^8.13.1",
+    "session": "^0.1.0"
+  }
+}
