@@ -40,17 +40,17 @@ app.get("/", async (req, res) => {
 app.post("/submit", async (req, res) => {
 	const email = req.body.email;
 	const password = req.body.password;
-
+	console.log("login page", email, password);
 	
 
 try {
 	const result = await db.query("select * from users where username =$1",
 	[email]);
-	if (result.rows.length < 0) {
+	if (result.rows.length == 0) {
 		res.redirect("no username");
 	} else {
 		console.log(result.rows[0].password);
-			console.log(result.rows[0].username);
+		console.log(result.rows[0].username);
 		if (result.rows[0].password == password) {
 			res.render("congrats.ejs");
 		}
