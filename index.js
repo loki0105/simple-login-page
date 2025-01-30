@@ -38,10 +38,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/success", (req, res) => {
+	console.log(req.user);
 	if (req.isAuthenticated()) {
 		res.render("congrats.ejs");
 	} else {
-		console.log("bla bal");
 		res.redirect("/");
 	}
 });
@@ -100,20 +100,19 @@ app.post("/register", async (req, res) => {
 passport.use(
 	new Strategy(async function verify(email, password, cb) {
 		try {
-			console.log("staratery");
+			console.log("sss", email, password);
 			const result = await db.query("select * from users where username =$1", [
 				email,
 			]);
 
 			if (result.rows.length > 0) {
 				const user = result.rows[0];
-				const hash1 = user.password;
-
-				bcrypt.compare(password, hash1, (err, result) => {
+				const storedHashedPassword = user.password;
+				bcrypt.compare(password, storedHashedPassword, (err, valid) => {
 					if (err) {
 						return cb(err);
 					} else {
-						if (result) {
+						if (valid) {
 							return cb(null, user);
 						} else {
 							return cb(null, false);
@@ -132,11 +131,9 @@ passport.use(
 passport.serializeUser((user, cb) => {
 	cb(null, user);
 });
-
 passport.deserializeUser((user, cb) => {
 	cb(null, user);
 });
-
 
 app.listen(port, () => {
 	console.log(`Listening on port ${port}`);
