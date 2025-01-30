@@ -11,6 +11,8 @@ const app = express();
 const port = 3000;
 const saltRounds = 10;
 env.config();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 app.use(
 	session({
@@ -19,9 +21,8 @@ app.use(
 		saveUninitialized: true,
 	})
 );
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(passport.initialize());
+app.use(passport.session());
 
 const db = new pg.Client({
 	user: process.env.PG_USER,
@@ -32,52 +33,36 @@ const db = new pg.Client({
 });
 db.connect();
 
-app.get("/", async (req, res) => {
+app.get("/", (req, res) => {
 	res.render("index.ejs");
 });
 
-app.post("/submit", async (req, res) => {
-	const email = req.body.email;
-	const password = req.body.password;
-	console.log("login page", email, password);
-	try {
-		const result = await db.query("select * from users where username =$1", [
-			email,
-		]);
-		if (result.rows.length == 0) {
-			res.redirect("no username");
-		} else {
-			const hash = result.rows[0].password;
-			bcrypt.compare(password, hash, function (err, result) {
-				if (err) {
-					console.log(err)
-					
-				} else {
-					if (result) {
-						res.render("congrats.ejs")
-						
-					} else
-					{
-						res.render("/");
-						}
-					
-				}
-				
-			});
-		}
-	} catch (error) {
-		console.log(error);
+app.get("/success", (req, res) => {
+	if (req.isAuthenticated()) {
+		res.render("congrats.ejs");
+	} else {
+		console.log("bla bal");
+		res.redirect("/");
 	}
 });
 
-
+app.post(
+	"/submit",
+	passport.authenticate("local", {
+		successRedirect: "/success",
+		failureRedirect: "/",
+	})
+);
 
 app.get("/regpage", (req, res) => {
+	res.render("congrats.ejs");
+});
+app.get("/reggg1", (req, res) => {
 	res.render("reg.ejs");
 });
 
 //newemail newpassword newpascheck
-
+//add@ss add
 app.post("/register", async (req, res) => {
 	const email = req.body.newemail;
 	const password = req.body.newpassword;
@@ -102,17 +87,56 @@ app.post("/register", async (req, res) => {
 							[email, hash]
 						);
 						console.log(cresult.rows);
-						res.render("congrats.ejs");
+						res.redirect("/regpage");
 					}
 				});
 			}
-		} catch (error) {
-			console.log(error);
+		} catch (err) {
+			console.log(err);
 		}
 	}
 });
 
-app.get("/tryagain", (req, res) => {});
+passport.use(
+	new Strategy(async function verify(email, password, cb) {
+		try {
+			console.log("staratery");
+			const result = await db.query("select * from users where username =$1", [
+				email,
+			]);
+
+			if (result.rows.length > 0) {
+				const user = result.rows[0];
+				const hash1 = user.password;
+
+				bcrypt.compare(password, hash1, (err, result) => {
+					if (err) {
+						return cb(err);
+					} else {
+						if (result) {
+							return cb(null, user);
+						} else {
+							return cb(null, false);
+						}
+					}
+				});
+			} else {
+				return cb("User not found");
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	})
+);
+
+passport.serializeUser((user, cb) => {
+	cb(null, user);
+});
+
+passport.deserializeUser((user, cb) => {
+	cb(null, user);
+});
+
 
 app.listen(port, () => {
 	console.log(`Listening on port ${port}`);

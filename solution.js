@@ -12,16 +12,17 @@ const port = 3000;
 const saltRounds = 10;
 env.config();
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+app.use(
+	session({
+		secret: process.env.SESSION_SECRET,
+		resave: false,
+		saveUninitialized: true,
+	})
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -108,6 +109,7 @@ app.post("/register", async (req, res) => {
 passport.use(
   new Strategy(async function verify(username, password, cb) {
     try {
+      
       const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
         username,
       ]);
