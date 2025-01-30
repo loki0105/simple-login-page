@@ -11,6 +11,8 @@ const app = express();
 const port = 3000;
 const saltRounds = 10;
 env.config();
+
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
@@ -21,6 +23,7 @@ app.use(
 		saveUninitialized: true,
 	})
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -34,7 +37,21 @@ const db = new pg.Client({
 db.connect();
 
 app.get("/", (req, res) => {
+
 	res.render("index.ejs");
+});
+
+app.get("/reggg1", (req, res) => {
+	res.render("reg.ejs");
+});
+
+app.get("/logout", (req, res) => {
+	req.logout(function (err) {
+		if (err) {
+			return next(err);
+		}
+		res.redirect("/");
+	});
 });
 
 app.get("/success", (req, res) => {
@@ -57,9 +74,7 @@ app.post(
 app.get("/regpage", (req, res) => {
 	res.render("congrats.ejs");
 });
-app.get("/reggg1", (req, res) => {
-	res.render("reg.ejs");
-});
+
 
 //newemail newpassword newpascheck
 //add@ss add
@@ -98,17 +113,16 @@ app.post("/register", async (req, res) => {
 });
 
 passport.use(
-	new Strategy(async function verify(email, password, cb) {
+	new Strategy(async function verify(logemail, logpassword, cb) {
 		try {
-			console.log("sss", email, password);
+			
 			const result = await db.query("select * from users where username =$1", [
-				email,
+				logemail,
 			]);
-
 			if (result.rows.length > 0) {
 				const user = result.rows[0];
 				const storedHashedPassword = user.password;
-				bcrypt.compare(password, storedHashedPassword, (err, valid) => {
+				bcrypt.compare(logpassword, storedHashedPassword, (err, valid) => {
 					if (err) {
 						return cb(err);
 					} else {

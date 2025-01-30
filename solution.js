@@ -110,7 +110,7 @@ app.post("/register", async (req, res) => {
 passport.use(
   new Strategy(async function verify(username, password, cb) {
     try {
-      console.log("staratery");
+   
       const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
         username,
       ]);
