@@ -110,7 +110,7 @@ app.post("/register", async (req, res) => {
 			console.log(err);
 		}
 	}
-});
+});   
 
 passport.use(
 	new Strategy(async function verify(username, password, cb) {
