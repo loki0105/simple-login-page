@@ -11,18 +11,20 @@ const app = express();
 const port = 3000;
 const saltRounds = 10;
 env.config();
+app.set("view engine", "ejs");
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-
 app.use(
 	session({
 		secret: process.env.SESSION_SECRET,
 		resave: false,
 		saveUninitialized: true,
+		cookie: { secure: false }, // Set secure to false for development
 	})
 );
+
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -37,10 +39,8 @@ const db = new pg.Client({
 db.connect();
 
 app.get("/", (req, res) => {
-
 	res.render("index.ejs");
 });
-
 app.get("/reggg1", (req, res) => {
 	res.render("reg.ejs");
 });
@@ -54,8 +54,11 @@ app.get("/logout", (req, res) => {
 	});
 });
 
-app.get("/success", (req, res) => {
-	console.log(req.user);
+
+
+
+app.get("/secrets", (req, res) => {
+	// console.log(req.user);
 	if (req.isAuthenticated()) {
 		res.render("congrats.ejs");
 	} else {
@@ -66,14 +69,11 @@ app.get("/success", (req, res) => {
 app.post(
 	"/submit",
 	passport.authenticate("local", {
-		successRedirect: "/success",
+		successRedirect: "/secrets",
 		failureRedirect: "/",
 	})
 );
 
-app.get("/regpage", (req, res) => {
-	res.render("congrats.ejs");
-});
 
 
 //newemail newpassword newpascheck
@@ -91,7 +91,7 @@ app.post("/register", async (req, res) => {
 			);
 			if (result.rows.length !== 0) {
 				console.log("email is used");
-				req.redirect("/");
+				res.redirect("/");
 			} else {
 				bcrypt.hash(password, saltRounds, async function (err, hash) {
 					if (err) {
@@ -102,7 +102,7 @@ app.post("/register", async (req, res) => {
 							[email, hash]
 						);
 						console.log(cresult.rows);
-						res.redirect("/regpage");
+						res.render("congrats.ejs");
 					}
 				});
 			}
@@ -113,22 +113,29 @@ app.post("/register", async (req, res) => {
 });
 
 passport.use(
-	new Strategy(async function verify(logemail, logpassword, cb) {
+	new Strategy(async function verify(username, password, cb) {
 		try {
-			
-			const result = await db.query("select * from users where username =$1", [
-				logemail,
-			]);
+			const username = req.body.logemail;
+			const password = logpassword;
+			console.log("hello");
+			const result = await db.query(
+				"SELECT * FROM users WHERE username = $1 ",
+				[username]
+			);
 			if (result.rows.length > 0) {
 				const user = result.rows[0];
 				const storedHashedPassword = user.password;
-				bcrypt.compare(logpassword, storedHashedPassword, (err, valid) => {
+				bcrypt.compare(password, storedHashedPassword, (err, valid) => {
 					if (err) {
+						//Error with password check
+						console.error("Error comparing passwords:", err);
 						return cb(err);
 					} else {
 						if (valid) {
+							//Passed password check
 							return cb(null, user);
 						} else {
+							//Did not pass password check
 							return cb(null, false);
 						}
 					}
@@ -140,15 +147,21 @@ passport.use(
 			console.log(err);
 		}
 	})
-);
+); 
 
+
+	
 passport.serializeUser((user, cb) => {
+	console.log("Serializing user:", user); // Add logging
 	cb(null, user);
 });
+
 passport.deserializeUser((user, cb) => {
+	console.log("Deserializing user:", user); // Add logging
 	cb(null, user);
 });
+
 
 app.listen(port, () => {
-	console.log(`Listening on port ${port}`);
+	console.log(`Server running on port ${port}`);
 });
