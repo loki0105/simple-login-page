@@ -75,6 +75,10 @@ app.get("/regpage", (req, res) => {
 	res.render("congrats.ejs");
 });
 
+app.get("/auth/google", passport.authenticate("google", {
+	scope: ["profile", "email"]
+}));
+
 
 //newemail newpassword newpascheck
 //add@ss add
@@ -150,9 +154,11 @@ passport.use(
 			callbackURL: "http://localhost:3000/auth/google/secrets",
 			userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
 		},
-		
+		async (accessToken, refreshToken, profile, cb) => {
+			console.log(profile);
+		}
 	)
-);
+); 
 
 
 passport.serializeUser((user, cb) => {
