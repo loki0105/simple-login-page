@@ -1,6 +1,6 @@
 # simple-login-page
 
-login page that works  with postgres database where it stores encrypted  data (bcrypt was used) +  implemented  google auth2 here  so  new user can regoster with their google accaunts as well. Also  this can use cookies  to keep  use loged in. 
+login page that works  with postgres database where it stores encrypted  data (bcrypt was used) +  implemented  google auth2 here  so  new user can register with their google accaunts as well. Also  this can use cookies  to keep  use loged in. 
 in order  to run it  you need to set .env  file  and provide  your passwords  for  database and google cloud api credentials
 try **npm i**,  basically it should work 
 also it might ask  to install npm i passport-google-oauth2 manually
