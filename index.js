@@ -4,17 +4,14 @@ import pg from "pg";
 import bcrypt from "bcrypt";
 import passport from "passport";
 import { Strategy } from "passport-local";
+import GoogleStrategy from "passport-google-oauth2";
 import session from "express-session";
 import env from "dotenv";
-import GoogleStrategy from "passport-google-oauth2";
+
 const app = express();
 const port = 3000;
 const saltRounds = 10;
 env.config();
-
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
 
 app.use(
 	session({
@@ -23,6 +20,8 @@ app.use(
 		saveUninitialized: true,
 	})
 );
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -37,12 +36,14 @@ const db = new pg.Client({
 db.connect();
 
 app.get("/", (req, res) => {
-
 	res.render("index.ejs");
 });
 
 app.get("/reggg1", (req, res) => {
 	res.render("reg.ejs");
+});
+app.get("/regpage", (req, res) => {
+	res.render("congrats.ejs");
 });
 
 app.get("/logout", (req, res) => {
@@ -55,13 +56,28 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/success", (req, res) => {
-	console.log(req.user);
 	if (req.isAuthenticated()) {
 		res.render("congrats.ejs");
 	} else {
 		res.redirect("/");
 	}
 });
+
+app.get(
+	"/auth/google",
+	passport.authenticate("google", {
+		scope: ["profile", "email"],
+	})
+);
+
+app.get(
+	"/auth/google/secrets",
+	passport.authenticate("google", {
+		successRedirect: "/success",
+		failureRedirect: "/",
+	})
+);
+
 
 app.post(
 	"/submit",
@@ -70,15 +86,6 @@ app.post(
 		failureRedirect: "/",
 	})
 );
-
-app.get("/regpage", (req, res) => {
-	res.render("congrats.ejs");
-});
-
-app.get("/auth/google", passport.authenticate("google", {
-	scope: ["profile", "email"]
-}));
-
 
 //newemail newpassword newpascheck
 //add@ss add
@@ -119,7 +126,6 @@ app.post("/register", async (req, res) => {
 passport.use(
 	new Strategy(async function verify(username, password, cb) {
 		try {
-			
 			const result = await db.query("select * from users where username =$1", [
 				username,
 			]);
@@ -145,6 +151,7 @@ passport.use(
 		}
 	})
 );
+
 passport.use(
 	"google",
 	new GoogleStrategy(
@@ -155,7 +162,21 @@ passport.use(
 			userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
 		},
 		async (accessToken, refreshToken, profile, cb) => {
-			console.log(profile);
+			try {
+				console.log(profile);
+				const result = await db.query("select * from users where username = $1", [
+					profile.email,
+				]);
+				if (result.rows.length === 0) {
+					const newuser = await db.query("insert into users  (username , password) values ($1,$2)", [profile.email, 'google']);
+					cb(null, newuser.rows[0]);
+				} else
+				{
+						cb(null, result.rows[0]);
+					}
+			} catch (err) {
+				cb(err);
+			}
 		}
 	)
 ); 
