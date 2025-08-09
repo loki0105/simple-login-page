@@ -123,7 +123,7 @@ app.post("/register", async (req, res) => {
 	}
 });
 
-passport.use(
+passport.use("local",
 	new Strategy(async function verify(username, password, cb) {
 		try {
 			const result = await db.query("select * from users where username =$1", [
